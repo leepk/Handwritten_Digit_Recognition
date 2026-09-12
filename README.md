@@ -52,49 +52,45 @@ sequenceDiagram
     participant UI as Streamlit UI
     participant PP as Image Preprocessor
     participant PS as Prediction Service
-    participant ML as ML Model
+    participant SVM as SVM Model
 
     User->>UI: Draw or upload digit
     User->>UI: Click Predict
+
     UI->>PP: Send image
-    PP->>PP: Resize and normalize image
-    PP->>PS: Send processed image
-    PS->>ML: Predict digit
-    ML-->>PS: Return prediction and confidence
-    PS-->>UI: Return result
-    UI-->>User: Show digit and confidence
+    PP->>PP: Crop, resize, center, normalize
+    PP-->>UI: Return 28x28 image
+
+    UI->>PS: Send processed image
+    PS->>SVM: predict_proba()
+    SVM-->>PS: Return digit probabilities
+
+    PS->>PS: Select highest probability
+    PS-->>UI: Return predicted digit and confidence
+
+    UI-->>User: Show prediction result
 ```
 
 ## Project Structure
 
 ```text
 handwritten-digit-recognition/
-│
 ├── app.py
-│
 ├── data/
-│   └── dataset.py
-│
+│   └── mnist_dataset.py
 ├── models/
-│   ├── base_model.py
-│   ├── logistic_model.py
-│   └── random_forest_model.py
-│
+│   └── svm_model.py
+├── preprocessing/
+│   └── image_preprocessor.py
 ├── services/
 │   ├── training_service.py
 │   └── prediction_service.py
-│
-├── preprocessing/
-│   └── image_preprocessor.py
-│
 ├── utils/
 │   └── evaluation.py
-│
 ├── tests/
-│   └── test_prediction.py
-│
-├── requirements.txt
-└── README.md
+│   └── test_preprocessor.py
+└── artifacts/
+    └── mnist_svm.pkl
 ```
 
 ## Installation
