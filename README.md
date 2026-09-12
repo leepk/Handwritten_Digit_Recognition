@@ -105,6 +105,7 @@ Clone the project:
 git clone <repository-url>
 cd handwritten-digit-recognition
 ```
+Install python: 3.11 ++
 
 Install the required libraries:
 
