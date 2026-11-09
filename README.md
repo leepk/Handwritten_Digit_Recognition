@@ -1,4 +1,4 @@
-# Handwritten Digit Recognition System
+# Handwritten Digit/Character Recognition System
 
 A simple machine learning application that recognizes handwritten digits from 0 to 9.
 
@@ -163,3 +163,10 @@ The application will display the predicted digit, confidence score, and model pe
 - Member 2: ____________________
 - Member 3: ____________________
 - Member 4: ____________________
+
+
+
+
+1. Downloading EMNIST
+2. Training EMNIST model 3x (82 sec, 79sec, 81 sec)
+

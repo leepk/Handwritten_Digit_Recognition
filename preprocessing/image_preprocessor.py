@@ -28,23 +28,23 @@ class ImagePreprocessor:
             [gray[0, :], gray[-1, :], gray[:, 0], gray[:, -1]]
         )
 
-        # MNIST uses a bright digit on a black background.
+        # EMNIST uses a bright digit/char on a black background.
         if float(border.mean()) > 127:
             gray = cv2.bitwise_not(gray)
 
         # Remove weak background noise and create a binary mask.
         _, binary = cv2.threshold(gray, 25, 255, cv2.THRESH_BINARY)
 
-        # Find the handwritten digit area.
+        # Find the handwritten digit/char area.
         points = cv2.findNonZero(binary)
         if points is None:
             return None
 
-        # Crop the image around the handwritten digit.
+        # Crop the image around the handwritten digit/char.
         x, y, width, height = cv2.boundingRect(points)
-        digit = gray[y:y + height, x:x + width]
+        character = gray[y:y + height, x:x + width]
 
-        # Resize the digit to fit inside a 20x20 MNIST-style area.
+        # Resize the digit/char to fit inside a 20x20 EMNIST-style area.
         scale = min(20.0 / max(height, 1), 20.0 / max(width, 1))
         new_width = max(1, min(20, int(round(width * scale))))
         new_height = max(1, min(20, int(round(height * scale))))
@@ -55,12 +55,12 @@ class ImagePreprocessor:
             else cv2.INTER_CUBIC
         )
         resized = cv2.resize(
-            digit,
+            character,
             (new_width, new_height),
             interpolation=interpolation,
         )
 
-        # Place the resized digit in the center of a 28x28 image.
+        # Place the resized /char in the center of a 28x28 image.
         canvas = np.zeros((28, 28), dtype=np.uint8)
         start_x = (28 - new_width) // 2
         start_y = (28 - new_height) // 2
@@ -94,7 +94,7 @@ class ImagePreprocessor:
         center_x = moments["m10"] / moments["m00"]
         center_y = moments["m01"] / moments["m00"]
 
-        # Move the digit toward the center of the 28x28 image.
+        # Move the digit/char toward the center of the 28x28 image.
         shift_x = 13.5 - center_x
         shift_y = 13.5 - center_y
 
