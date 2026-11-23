@@ -16,7 +16,7 @@ def build_probability_figure(probabilities: np.ndarray):
     ax.bar(x, probabilities * 100, width=0.8)
     ax.set_xticks(x)
     ax.set_xticklabels(characters, rotation=0, fontsize=12)
-    ax.set_xlabel("Digit and Charactors", fontsize=16)
+    ax.set_xlabel("Characters", fontsize=16)
     ax.set_ylabel("Probability (%)", fontsize=16)
     ax.set_ylim(0, 100)
     #ax.set_title("Prediction Probability")
