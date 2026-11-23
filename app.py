@@ -14,6 +14,9 @@ from utils.evaluation import build_probability_figure
 import pandas as pd
 from services.retraining_service import retrain_model
 from tensorflow import keras
+from zoneinfo import ZoneInfo
+        
+        
 
 from services.database_service import (
     create_table,
@@ -75,7 +78,7 @@ def get_model():
         if Path("artifacts/emnist_model_finetuned.keras").exists()
         else "artifacts/emnist_model.keras"
 )
-    model = EmnistCnnModel()
+    model = EmnistCnnModel(model_path = model_path)
     model.load_or_train()
     return model
 
@@ -92,6 +95,7 @@ if "canvas_key" not in st.session_state:
     st.session_state.canvas_key = 0
 
 model = get_model()
+#st.sidebar.write("Active Model: ", model.model_path)
 preprocessor = ImagePreprocessor()
 prediction_service = PredictionService(model)
 
@@ -107,12 +111,6 @@ st.markdown(
     '<div class="subtitle">EMNIST + CNN model for handwritten digit and character 0-9,A-Z,a-z</div>',
     unsafe_allow_html=True,
 )
-
-with st.sidebar:
-    st.write("Model: **EMNIST CNN**")
-    st.caption("Python 3.12 recommended")
-    st.caption("The first run downloads EMNIST and trains the model once.")
-
 tab_predict,tab_history, tab_about = st.tabs(["Predict", "History", "About"])
 
 with tab_predict:
@@ -417,6 +415,11 @@ with tab_history:
 
     if results:
         df = pd.DataFrame(results)
+        df["timestamp"] = (
+                    pd.to_datetime(df["timestamp"], utc=True)
+                    .dt.tz_convert(ZoneInfo("America/Los_Angeles"))
+                    .dt.strftime("%m/%d/%Y %I:%M:%S %p")
+                )
         df.insert(0, "Select", False)
         df.insert(1, "Preview", False)
 
@@ -429,7 +432,7 @@ with tab_history:
         edited_df = st.data_editor(
             df,
             hide_index=True,
-            use_container_width=True,
+            width="stretch",
             disabled=[
                 "id",
                 "character",
@@ -628,27 +631,83 @@ with tab_history:
         )
 
 with tab_about:
-    st.subheader("About This Project")
-    st.write(
-        """
-        This application recognizes handwritten single digits and characters 0-9, A-Z, a-z.
+    
+    st.title("About Handwritten Character Recognition")
 
-        The user draws a digit on a Streamlit canvas or uploads an image.
-        The image is converted to EMNIST format: 28×28 grayscale, bright digit
-        on a black background, resized and centered. A CNN model trained on the
-        EMNIST dataset predicts the digit/char and returns a confidence score.
-        """
-    )
+    st.markdown("""
+    This application uses **deep learning** to recognize handwritten
+    digits (0–9), uppercase letters (A–Z), and lowercase letters (a–z),
+    covering a total of **62 character classes**.
 
-    st.markdown(
-        """
-        **Technology**
-        - Python
-        - Streamlit
-        - TensorFlow / Keras
-        - MNIST
-        - NumPy
-        - Pillow
-        - Matplotlib
-        """
-    )
+    ## How It Works
+
+    Users can draw a single handwritten character using an interactive
+    Streamlit canvas or upload an image.
+
+    The application preprocesses the image before prediction:
+
+    1. Converts the image to **28 × 28 grayscale**.
+    2. Adjusts the image to display a bright character on a black background.
+    3. Resizes and centers the handwritten character.
+    4. Passes the processed image to a **Convolutional Neural Network (CNN)**.
+
+    The CNN model, trained on the **EMNIST ByClass dataset**, predicts the
+    most likely character and displays its confidence score.
+
+    ## Key Features
+
+    - **Character Recognition:** Recognizes handwritten digits (0–9),
+    uppercase letters (A–Z), and lowercase letters (a–z).
+    - **Interactive Drawing Canvas:** Allows users to draw characters directly.
+    - **Image Upload:** Supports recognition from uploaded images.
+    - **Prediction Results:** Displays the predicted character and
+    its confidence score.
+    - **Prediction History:** Stores and displays previous predictions
+    using a SQLite database.
+    - **Search and Filtering:** Allows users to search and filter
+    prediction history.
+    - **Delete Predictions:** Allows users to delete selected
+    prediction records.
+    - **User Feedback:** Allows users to mark predictions as correct
+    or incorrect and provide the correct character when necessary.
+    - **Feedback Statistics:** Tracks reviewed, correct, and incorrect
+    predictions, along with feedback accuracy.
+
+    ## Model Information
+
+    - **Model:** EMNIST ByClass CNN
+    - **Architecture:** Convolutional Neural Network (CNN)
+    - **Classification:** 62 character classes
+    - **Input Format:** 28 × 28 grayscale images
+    - **Training Dataset:** EMNIST ByClass
+    - **Recommended Python Version:** 3.12
+
+    **Model Initialization**
+
+    If no saved model is available, the application downloads the
+    EMNIST dataset and trains the CNN model.
+
+    Once training is completed, the model is saved and reused
+    on subsequent runs without retraining.
+
+    **Model Fine-Tuning**
+
+    The application supports collecting user feedback on predictions.
+    A fine-tuned model can be used to improve recognition performance
+    based on additional training.
+
+    ## Technologies Used
+
+    - **Programming Language:** Python 3.12
+    - **Web Application Framework:** Streamlit
+    - **Interactive Drawing Canvas:** streamlit-drawable-canvas
+    - **Deep Learning Framework:** TensorFlow / Keras
+    - **Machine Learning Dataset:** EMNIST ByClass (62 classes)
+    - **Image Processing:** NumPy, Pillow, OpenCV
+    - **Data Analysis:** Pandas
+    - **Model Evaluation:** scikit-learn
+    - **Data Visualization:** Matplotlib
+    - **Database Management:** SQLite (sqlite3)
+    - **File and Path Management:** pathlib
+    """)
+

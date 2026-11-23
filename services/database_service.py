@@ -1,5 +1,7 @@
 import sqlite3
 from pathlib import Path
+from datetime import datetime, time, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 BASE_DIR = Path(__file__).resolve().parent.parent 
 DB_NAME = BASE_DIR/"predictions.db"
@@ -115,14 +117,31 @@ def search_predictions(
         min_confidence / 100,
         max_confidence / 100
     ]
+    pacific = ZoneInfo("America/Los_Angeles")
+
+    if start_date is not None:
+        start_dt = datetime.combine(
+            start_date, time.min, tzinfo=pacific
+        )
+        start_utc = start_dt.astimezone(timezone.utc)
+        start_timestamp = start_utc.strftime("%Y-%m-%d %H:%M:%S")
+
+    if end_date is not None:
+        end_dt = datetime.combine(
+            end_date + timedelta(days=1),
+            time.min,
+            tzinfo=pacific
+        )
+        end_utc = end_dt.astimezone(timezone.utc)
+        end_timestamp = end_utc.strftime("%Y-%m-%d %H:%M:%S")
 
     if start_date is not None:
         query += " AND date(timestamp) >= ?"
-        params.append(str(start_date))
+        params.append(str(start_timestamp))
 
     if end_date is not None:
         query += " AND date(timestamp) <= ?"
-        params.append(str(end_date))
+        params.append(str(end_timestamp))
 
     if character != "All":
         query += " AND character = ? COLLATE BINARY"
@@ -170,7 +189,9 @@ def get_feedback_statistics():
                 COALESCE(SUM(is_correct), 0) AS correct,
                 COUNT(*) - COALESCE(SUM(is_correct), 0) AS incorrect,
                 ROUND(AVG(is_correct) * 100, 2) AS accuracy
-            FROM prediction_feedback
+            FROM prediction_feedback  AS f
+            INNER JOIN predictions AS p
+                ON f.prediction_id = p.id
         """).fetchone()
 
         return dict(row)
