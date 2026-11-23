@@ -95,7 +95,7 @@ if "canvas_key" not in st.session_state:
     st.session_state.canvas_key = 0
 
 model = get_model()
-st.sidebar.write("Active Model: ", model.model_path)
+#st.sidebar.write("Active Model: ", model.model_path)
 preprocessor = ImagePreprocessor()
 prediction_service = PredictionService(model)
 
@@ -111,12 +111,6 @@ st.markdown(
     '<div class="subtitle">EMNIST + CNN model for handwritten digit and character 0-9,A-Z,a-z</div>',
     unsafe_allow_html=True,
 )
-
-with st.sidebar:
-    st.write("Model: **EMNIST CNN**")
-    st.caption("Python 3.12 recommended")
-    st.caption("The first run downloads EMNIST and trains the model once.")
-
 tab_predict,tab_history, tab_about = st.tabs(["Predict", "History", "About"])
 
 with tab_predict:
@@ -438,7 +432,7 @@ with tab_history:
         edited_df = st.data_editor(
             df,
             hide_index=True,
-            use_container_width=True,
+            width="stretch",
             disabled=[
                 "id",
                 "character",
@@ -637,41 +631,83 @@ with tab_history:
         )
 
 with tab_about:
-    st.title("About Handwritten Character Recognition")
-    st.markdown(
-        """
-        This application uses deep learning to recognize handwritten digits (0–9), 
-        uppercase letters (A–Z), and lowercase letters (a–z), covering a total of 62 
-        character classes.
     
-        ## How It Works
+    st.title("About Handwritten Character Recognition")
 
-        Users can draw a handwritten character on a Streamlit canvas or upload an image.
+    st.markdown("""
+    This application uses **deep learning** to recognize handwritten
+    digits (0–9), uppercase letters (A–Z), and lowercase letters (a–z),
+    covering a total of **62 character classes**.
 
-        The application preprocesses the image by converting it to 28 × 28 grayscale format, with 
-        a bright character on a black background. The character is resized and centered before 
-        being passed to a Convolutional Neural Network (CNN).
+    ## How It Works
 
-        The CNN model, trained on the EMNIST ByClass dataset, predicts the most likely character 
-        and displays its confidence score.
+    Users can draw a single handwritten character using an interactive
+    Streamlit canvas or upload an image.
 
-        ## Features
-        
-        - Recognition of digits, uppercase letters, and lowercase letters
-        - Interactive drawing canvas and image upload
-        - Prediction results with confidence scores
-        - Prediction history stored in SQLite
-        - User feedback to mark predictions as correct or incorrect
-        - Feedback statistics for reviewed, correct, and incorrect predictions
+    The application preprocesses the image before prediction:
 
-        ## Technologies Used
+    1. Converts the image to **28 × 28 grayscale**.
+    2. Adjusts the image to display a bright character on a black background.
+    3. Resizes and centers the handwritten character.
+    4. Passes the processed image to a **Convolutional Neural Network (CNN)**.
 
-        - Python
-        - Streamlit
-        - TensorFlow / Keras
-        - EMNIST ByClass
-        - NumPy
-        - Pillow
-        - Matplotlib
-        - SQLite
-        """)
+    The CNN model, trained on the **EMNIST ByClass dataset**, predicts the
+    most likely character and displays its confidence score.
+
+    ## Key Features
+
+    - **Character Recognition:** Recognizes handwritten digits (0–9),
+    uppercase letters (A–Z), and lowercase letters (a–z).
+    - **Interactive Drawing Canvas:** Allows users to draw characters directly.
+    - **Image Upload:** Supports recognition from uploaded images.
+    - **Prediction Results:** Displays the predicted character and
+    its confidence score.
+    - **Prediction History:** Stores and displays previous predictions
+    using a SQLite database.
+    - **Search and Filtering:** Allows users to search and filter
+    prediction history.
+    - **Delete Predictions:** Allows users to delete selected
+    prediction records.
+    - **User Feedback:** Allows users to mark predictions as correct
+    or incorrect and provide the correct character when necessary.
+    - **Feedback Statistics:** Tracks reviewed, correct, and incorrect
+    predictions, along with feedback accuracy.
+
+    ## Model Information
+
+    - **Model:** EMNIST ByClass CNN
+    - **Architecture:** Convolutional Neural Network (CNN)
+    - **Classification:** 62 character classes
+    - **Input Format:** 28 × 28 grayscale images
+    - **Training Dataset:** EMNIST ByClass
+    - **Recommended Python Version:** 3.12
+
+    **Model Initialization**
+
+    If no saved model is available, the application downloads the
+    EMNIST dataset and trains the CNN model.
+
+    Once training is completed, the model is saved and reused
+    on subsequent runs without retraining.
+
+    **Model Fine-Tuning**
+
+    The application supports collecting user feedback on predictions.
+    A fine-tuned model can be used to improve recognition performance
+    based on additional training.
+
+    ## Technologies Used
+
+    - **Programming Language:** Python 3.12
+    - **Web Application Framework:** Streamlit
+    - **Interactive Drawing Canvas:** streamlit-drawable-canvas
+    - **Deep Learning Framework:** TensorFlow / Keras
+    - **Machine Learning Dataset:** EMNIST ByClass (62 classes)
+    - **Image Processing:** NumPy, Pillow, OpenCV
+    - **Data Analysis:** Pandas
+    - **Model Evaluation:** scikit-learn
+    - **Data Visualization:** Matplotlib
+    - **Database Management:** SQLite (sqlite3)
+    - **File and Path Management:** pathlib
+    """)
+
