@@ -14,6 +14,9 @@ from utils.evaluation import build_probability_figure
 import pandas as pd
 from services.retraining_service import retrain_model
 from tensorflow import keras
+from zoneinfo import ZoneInfo
+        
+        
 
 from services.database_service import (
     create_table,
@@ -75,7 +78,7 @@ def get_model():
         if Path("artifacts/emnist_model_finetuned.keras").exists()
         else "artifacts/emnist_model.keras"
 )
-    model = EmnistCnnModel()
+    model = EmnistCnnModel(model_path = model_path)
     model.load_or_train()
     return model
 
@@ -92,6 +95,7 @@ if "canvas_key" not in st.session_state:
     st.session_state.canvas_key = 0
 
 model = get_model()
+st.sidebar.write("Active Model: ", model.model_path)
 preprocessor = ImagePreprocessor()
 prediction_service = PredictionService(model)
 
@@ -417,6 +421,11 @@ with tab_history:
 
     if results:
         df = pd.DataFrame(results)
+        df["timestamp"] = (
+                    pd.to_datetime(df["timestamp"], utc=True)
+                    .dt.tz_convert(ZoneInfo("America/Los_Angeles"))
+                    .dt.strftime("%m/%d/%Y %I:%M:%S %p")
+                )
         df.insert(0, "Select", False)
         df.insert(1, "Preview", False)
 
@@ -628,27 +637,41 @@ with tab_history:
         )
 
 with tab_about:
-    st.subheader("About This Project")
-    st.write(
-        """
-        This application recognizes handwritten single digits and characters 0-9, A-Z, a-z.
-
-        The user draws a digit on a Streamlit canvas or uploads an image.
-        The image is converted to EMNIST format: 28×28 grayscale, bright digit
-        on a black background, resized and centered. A CNN model trained on the
-        EMNIST dataset predicts the digit/char and returns a confidence score.
-        """
-    )
-
+    st.title("About Handwritten Character Recognition")
     st.markdown(
         """
-        **Technology**
+        This application uses deep learning to recognize handwritten digits (0–9), 
+        uppercase letters (A–Z), and lowercase letters (a–z), covering a total of 62 
+        character classes.
+    
+        ## How It Works
+
+        Users can draw a handwritten character on a Streamlit canvas or upload an image.
+
+        The application preprocesses the image by converting it to 28 × 28 grayscale format, with 
+        a bright character on a black background. The character is resized and centered before 
+        being passed to a Convolutional Neural Network (CNN).
+
+        The CNN model, trained on the EMNIST ByClass dataset, predicts the most likely character 
+        and displays its confidence score.
+
+        ## Features
+        
+        - Recognition of digits, uppercase letters, and lowercase letters
+        - Interactive drawing canvas and image upload
+        - Prediction results with confidence scores
+        - Prediction history stored in SQLite
+        - User feedback to mark predictions as correct or incorrect
+        - Feedback statistics for reviewed, correct, and incorrect predictions
+
+        ## Technologies Used
+
         - Python
         - Streamlit
         - TensorFlow / Keras
-        - MNIST
+        - EMNIST ByClass
         - NumPy
         - Pillow
         - Matplotlib
-        """
-    )
+        - SQLite
+        """)
