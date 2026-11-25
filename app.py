@@ -15,6 +15,7 @@ import pandas as pd
 from services.retraining_service import retrain_model
 from tensorflow import keras
 from zoneinfo import ZoneInfo
+from datetime import datetime
         
         
 
@@ -477,6 +478,46 @@ with tab_history:
             key=f"history_{st.session_state.history_version}"
         )
 
+        # -----------------------------------------
+        # Export prediction history to CSV
+        # -----------------------------------------
+
+        export_df = df[
+            [
+                "id",
+                "character",
+                "confidence_percent",
+                "timestamp",
+                "actual_character",
+                "feedback_status"
+            ]
+        ].copy()
+
+        export_df = export_df.rename(columns={
+            "id": "ID",
+            "character": "Predicted",
+            "confidence_percent": "Confidence (%)",
+            "timestamp": "Timestamp",
+            "actual_character": "Actual",
+            "feedback_status": "Feedback"
+        })
+
+        csv_data = export_df.to_csv(
+            index=False
+        ).encode("utf-8-sig")
+
+        timestamp = datetime.now(
+            ZoneInfo("America/Los_Angeles")
+        ).strftime("%Y%m%d_%H%M%S")
+
+        st.download_button(
+            label="📥 Export to CSV",
+            data=csv_data,
+            file_name=f"prediction_history_{timestamp}.csv",
+            mime="text/csv",
+            help="Export all matching prediction records"
+        )
+
         # Find selected records for preview
         preview_rows = edited_df[edited_df["Preview"]]
 
@@ -666,6 +707,8 @@ with tab_about:
     using a SQLite database.
     - **Search and Filtering:** Allows users to search and filter
     prediction history.
+    - **CSV Export:** Allows users to download filtered prediction history as a CSV
+    file for external analysis and reporting.
     - **Delete Predictions:** Allows users to delete selected
     prediction records.
     - **User Feedback:** Allows users to mark predictions as correct
