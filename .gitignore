@@ -20,8 +20,9 @@ venv/
 # macOS temporary files
 .DS_Store
 
-# VS Code settings
-.vscode/
+# VS Code settings - keep launch.json
+.vscode/*
+!.vscode/launch.json
 
 # Temporary files
 *.tmp
